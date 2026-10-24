@@ -1,0 +1,37 @@
+name: Build Android APK from ZIP
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Unzip Project
+        run: |
+          unzip -o *.zip
+          # Pindahkan isi jika terbungkus dalam sub-folder
+          if [ -d "app" ]; then
+            echo "Project root found"
+          else
+            mv */* . 2>/dev/null || true
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Debug APK
+        run: |
+          chmod +x gradlew || true
+          ./gradlew assembleDebug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
